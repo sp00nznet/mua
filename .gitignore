@@ -1,0 +1,54 @@
+# ── Copyrighted game data (bring your own legally-dumped disc) ───────────
+input/
+game/
+*.7z
+*.iso
+*.ISO
+*.BIN
+*.SELF
+*.self
+*.elf
+*.ELF
+*.sprx
+*.SPRX
+*.pkg
+PARAM.SFO
+data/keys
+*.dkey
+*.rap
+
+# ── Generated: lifted C++, analysis JSON, extracted SPU images ───────────
+#    All derived from YOUR disc. Regenerate; never commit.
+src/recomp/
+src/spu_gen/
+src/gen/*.cpp
+meta/
+generated/
+
+# ── Build output ─────────────────────────────────────────────────────────
+build/
+build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+
+# ── Logs / scratch / captures ────────────────────────────────────────────
+*.log
+*.tmp
+scratch/
+*.ppm
+*.bmp
+*.png
+!docs/images/*.png
+
+# ── Python / IDE / OS ────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+.venv/
+.claude/
+.vs/
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
