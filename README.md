@@ -58,13 +58,37 @@ Analysis only. Nothing is lifted yet and nothing builds.
 | `EBOOT.BIN` → plain ELF | **done** — non-NPDRM disc SELF, 13.8 MB ELF |
 | Import / NID analysis | **done** — 126 imports across 11 libraries |
 | Function boundary detection | **done** — **38,648 functions**, every `.opd` descriptor verified as a function start |
-| SPU image extraction | not started |
-| PPU lifting | not started |
-| Build & link | not started |
-| Boot | not started |
+| SPU image extraction | **done** — 3 embedded SPU ELFs, 262 KB |
+| PPU lifting | **done** — 39,040 functions, 8,898 unique call targets, 6 chunks |
+| Build & link | **done** — `mua.exe`, 160 MB x86-64, clang-cl + Ninja |
+| Boot | **runs real game code** — CRT, TLS, `sys_memory`, sysmodule init (FS, IO, GCM_SYS, NET, NETCTL) |
+| First wall | a TOC-relative pointer chain resolves to 3, and the guest polls address `0x00000003` forever |
 
 For scale: Simpsons Arcade lifted 14,754 functions and is playable; Twisted Metal
 31,032 and rasterises. 38,648 is a large but ordinary lift.
+
+## Where it stops
+
+The title boots, initialises the CRT and TLS, allocates its first heap, loads and
+then re-verifies its sysmodules — and then spins. `PS3_DEBUG` says the last HLE
+call is `cellSysmoduleIsLoaded`, and the guest stack is
+`func_0081DEC8` <- `func_007D1AF4` <- `func_008E283C`.
+
+The spin is inside `func_007C6CC8`, on a TOC-relative pointer chain:
+
+```c
+r30 = vm_read32(r2 - 0x67AC);      /* TOC entry      */
+r9  = vm_read32(r30 - 0x7FFC);     /* pointer        */
+r9  = vm_read32(r9 + 0);           /* deref          */
+if (r9 == 0) goto ...;             /* null is handled */
+r0  = vm_read8(r9 + 0);            /* r9 == 3 here    */
+```
+
+`r9` comes out as **3**, which survives the null check and is then dereferenced,
+so the guest reads address `0x00000003` (which returns 0) two hundred thousand
+times and keeps going. Either the small-data area behind that TOC entry is not
+initialised the way the title expects, or one of the two loads is reading the
+wrong thing. That is the next thing to chase.
 
 ## Reproducing the analysis
 
